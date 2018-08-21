@@ -84,8 +84,8 @@ public class ReactiveFlowApp {
               .getSubscriberName() + "! You are too slow getting magazines" +
               " and we don't have more space for them! " +
               "I'll drop your magazine: " + msg));
-          return false; // don't retry, we don't believe in second opportunities, for slow Pete, which would with 16 magazines
-//          return true;  //Add retry, we believe in second opportunities, for slow Pete, which would with 15 magazines
+//          return false; // don't retry, we don't believe in second opportunities, for slow Pete, which would with 16 magazines
+          return true;  //Add retry, we believe in second opportunities, for slow Pete, which would with 15 magazines
         });
 
       if (lag < 0) {
