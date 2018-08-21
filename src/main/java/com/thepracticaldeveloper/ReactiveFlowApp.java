@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class ReactiveFlowApp {
 
   private static final int NUMBER_OF_MAGAZINES = 20;
-  private static final long MAX_SECONDS_TO_KEEP_IT_WHEN_NO_SPACE = 4;
+  private static final long MAX_SECONDS_TO_KEEP_IT_WHEN_NO_SPACE = 3;
   private static final Logger log =
     LoggerFactory.getLogger(ReactiveFlowApp.class);
 
@@ -84,8 +84,8 @@ public class ReactiveFlowApp {
               .getSubscriberName() + "! You are too slow getting magazines" +
               " and we don't have more space for them! " +
               "I'll drop your magazine: " + msg));
-//          return false; // don't retry, we don't believe in second opportunities, for slow Pete, which would with 16 magazines
-          return true;  //Add retry, we believe in second opportunities, for slow Pete, which would with 15 magazines
+          return false; // don't retry, we don't believe in second opportunities, for slow Pete, which would with 16 magazines
+//          return true;  //Add retry, we believe in second opportunities, for slow Pete, which would with 15 magazines
         });
 
       if (lag < 0) {
