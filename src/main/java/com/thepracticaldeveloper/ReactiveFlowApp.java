@@ -18,14 +18,17 @@ public class ReactiveFlowApp {
   public static void main(String[] args) throws Exception {
     final ReactiveFlowApp app = new ReactiveFlowApp();
 
+    log.info("1.The subscribers are so fast that there are no problems related to buffering.");
     log.info("\n\n### CASE 1: Subscribers are fast, buffer size is not so " +
       "important in this case.");
     app.magazineDeliveryExample(100L, 100L, 8);
 
+    log.info("2.One of the subscribers is very slow so that buffer starts getting full. However, the buffer is big enough to hold all the items so the subscriber doesn’t experience drops.");
     log.info("\n\n### CASE 2: A slow subscriber, but a good enough buffer " +
       "size on the publisher's side to keep all items until they're picked up");
     app.magazineDeliveryExample(1000L, 3000L, NUMBER_OF_MAGAZINES);
 
+    log.info("3.One of the subscribers is very slow and the buffer is not big enough to hold all the items. In this case, the handler gets invoked in several times and the subscriber doesn’t receive all the items");
     log.info("\n\n### CASE 3: A slow subscriber, and a very limited buffer " +
       "size on the publisher's side so it's important to keep the slow " +
       "subscriber under control");
