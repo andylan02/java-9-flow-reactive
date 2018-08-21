@@ -59,10 +59,21 @@ public class ReactiveFlowApp {
       " seconds to consume each magazine.");
     IntStream.rangeClosed(1, 20).forEach((number) -> {
       log.info("Offering magazine " + number + " to consumers");
+
+      //Just with submit and buffer block with maxStorageInPO
+      publisher.submit(number);
+
+      //Use
       final int lag = publisher.offer(
+        //The item to make available to subscribers.
         number,
+
+        //The maximum amount of time to wait for each subscriber to pick that item (arguments two and three).
         MAX_SECONDS_TO_KEEP_IT_WHEN_NO_SPACE,
         TimeUnit.SECONDS,
+
+        //A handler for us to control what happens if a given subscriber doesn’t get the item.
+        // In our case, we send an error to that subscriber and, by returning false, we indicate we don’t want to retry and wait again.
         (subscriber, msg) -> {
           subscriber.onError(
             new RuntimeException("Hey " + ((MagazineSubscriber) subscriber)
@@ -72,6 +83,9 @@ public class ReactiveFlowApp {
           return false; // don't retry, we don't believe in second opportunities
         });
       if (lag < 0) {
+        //When a drop happens, the offer method returns a negative number.
+        // Otherwise, it returns the estimated maximum number of items pending to be collected by the slowest subscriber (lag).
+        // We just log that number to the console.
         log("Dropping " + -lag + " magazines");
       } else {
         log("The slowest consumer has " + lag +
