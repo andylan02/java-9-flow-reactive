@@ -1,5 +1,6 @@
 package com.thepracticaldeveloper;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
 import java.util.stream.IntStream;
 
@@ -19,17 +20,21 @@ public class MagazineSubscriber implements Flow.Subscriber<Integer> {
   private Flow.Subscription subscription;
   private int nextMagazineExpected;
   private int totalRead;
+  private CountDownLatch latch;
+  private int publishSize = 1;
 
-  MagazineSubscriber(final long sleepTime, final String subscriberName) {
+  MagazineSubscriber(final long sleepTime, final String subscriberName, final int publishSize) {
     this.sleepTime = sleepTime;
     this.subscriberName = subscriberName;
     this.nextMagazineExpected = 1;
     this.totalRead = 0;
+    this.publishSize = publishSize;
   }
 
   @Override
   public void onSubscribe(final Flow.Subscription subscription) {
     this.subscription = subscription;
+    this.latch = new CountDownLatch(publishSize);
     subscription.request(1);
   }
 
@@ -51,11 +56,15 @@ public class MagazineSubscriber implements Flow.Subscriber<Integer> {
     log("I'll get another magazine now, next one should be: " +
       nextMagazineExpected);
     subscription.request(1);
+
+    latch.countDown();
   }
 
   @Override
   public void onError(final Throwable throwable) {
     log("Oops I got an error from the Publisher: " + throwable.getMessage());
+
+    latch.countDown();
   }
 
   @Override
@@ -78,5 +87,9 @@ public class MagazineSubscriber implements Flow.Subscriber<Integer> {
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public CountDownLatch getLatch() {
+    return latch;
   }
 }

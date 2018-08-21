@@ -18,15 +18,15 @@ public class ReactiveFlowApp {
   public static void main(String[] args) throws Exception {
     final ReactiveFlowApp app = new ReactiveFlowApp();
 
-    log.info("1.The subscribers are so fast that there are no problems related to buffering.");
-    log.info("\n\n### CASE 1: Subscribers are fast, buffer size is not so " +
-      "important in this case.");
-    app.magazineDeliveryExample(100L, 100L, 8);
-
-    log.info("2.One of the subscribers is very slow so that buffer starts getting full. However, the buffer is big enough to hold all the items so the subscriber doesn’t experience drops.");
-    log.info("\n\n### CASE 2: A slow subscriber, but a good enough buffer " +
-      "size on the publisher's side to keep all items until they're picked up");
-    app.magazineDeliveryExample(1000L, 3000L, NUMBER_OF_MAGAZINES);
+//    log.info("1.The subscribers are so fast that there are no problems related to buffering.");
+//    log.info("\n\n### CASE 1: Subscribers are fast, buffer size is not so " +
+//      "important in this case.");
+//    app.magazineDeliveryExample(100L, 100L, 8);
+//
+//    log.info("2.One of the subscribers is very slow so that buffer starts getting full. However, the buffer is big enough to hold all the items so the subscriber doesn’t experience drops.");
+//    log.info("\n\n### CASE 2: A slow subscriber, but a good enough buffer " +
+//      "size on the publisher's side to keep all items until they're picked up");
+//    app.magazineDeliveryExample(1000L, 3000L, NUMBER_OF_MAGAZINES);
 
     log.info("3.One of the subscribers is very slow and the buffer is not big enough to hold all the items. In this case, the handler gets invoked in several times and the subscriber doesn’t receive all the items");
     log.info("\n\n### CASE 3: A slow subscriber, and a very limited buffer " +
@@ -42,22 +42,26 @@ public class ReactiveFlowApp {
     final SubmissionPublisher<Integer> publisher =
       new SubmissionPublisher<>(ForkJoinPool.commonPool(), maxStorageInPO);
 
+    int publishSize = 20;
+
     final MagazineSubscriber jack = new MagazineSubscriber(
       sleepTimeJack,
-      MagazineSubscriber.JACK
+      MagazineSubscriber.JACK,
+      publishSize
     );
     final MagazineSubscriber pete = new MagazineSubscriber(
       sleepTimePete,
-      MagazineSubscriber.PETE
+      MagazineSubscriber.PETE,
+      publishSize
     );
 
     publisher.subscribe(jack);
     publisher.subscribe(pete);
 
-    log.info("Printing 20 magazines per subscriber, with room in publisher for "
+    log.info("Printing "+ publishSize + " magazines per subscriber, with room in publisher for "
       + maxStorageInPO + ". They have " + MAX_SECONDS_TO_KEEP_IT_WHEN_NO_SPACE +
       " seconds to consume each magazine.");
-    IntStream.rangeClosed(1, 20).forEach((number) -> {
+    IntStream.rangeClosed(1, publishSize).forEach((number) -> {
       log.info("Offering magazine " + number + " to consumers");
 
       //Just with submit and buffer block with maxStorageInPO
@@ -82,6 +86,7 @@ public class ReactiveFlowApp {
               "I'll drop your magazine: " + msg));
           return false; // don't retry, we don't believe in second opportunities
         });
+
       if (lag < 0) {
         //When a drop happens, the offer method returns a negative number.
         // Otherwise, it returns the estimated maximum number of items pending to be collected by the slowest subscriber (lag).
@@ -95,8 +100,23 @@ public class ReactiveFlowApp {
 
     // Blocks until all subscribers are done (this part could be improved
     // with latches, but this way we keep it simple)
-    while (publisher.estimateMaximumLag() > 0) {
+   /* while (publisher.estimateMaximumLag() > 0) {
       Thread.sleep(500L);
+  }*/
+
+    //Here we use latch instead of sleep
+    try {
+      jack.getLatch().await();
+      log("Jack finished");
+    } catch (InterruptedException e) {
+      log("Jack with InterruptedException:  " + e.getMessage());
+    }
+
+    try {
+      pete.getLatch().await();
+      log("Pete finished");
+    } catch (InterruptedException e) {
+      log("Pete with InterruptedException:  " + e.getMessage());
     }
 
     // Closes the publisher, calling the onComplete() method on every subscriber
