@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class ReactiveFlowApp {
 
   private static final int NUMBER_OF_MAGAZINES = 20;
-  private static final long MAX_SECONDS_TO_KEEP_IT_WHEN_NO_SPACE = 2;
+  private static final long MAX_SECONDS_TO_KEEP_IT_WHEN_NO_SPACE = 3;
   private static final Logger log =
     LoggerFactory.getLogger(ReactiveFlowApp.class);
 
