@@ -61,7 +61,7 @@ public class ReactiveFlowApp {
       log.info("Offering magazine " + number + " to consumers");
 
       //Just with submit and buffer block with maxStorageInPO
-      publisher.submit(number);
+      //publisher.submit(number);
 
       //Use
       final int lag = publisher.offer(
